@@ -10,13 +10,13 @@ this.processWebhookMessage = function(messageObj, user, defaultValues = { channe
 
 		let channelValue = channel.substr(1);
 		let room;
-
+		let roomType=messageObj.type || 'd'
 		switch (channelType) {
 			case '#':
 				room = RocketChat.getRoomByNameOrIdWithOptionToJoin({ currentUserId: user._id, nameOrId: channelValue, joinChannel: true });
 				break;
 			case '@':
-				room = RocketChat.getRoomByNameOrIdWithOptionToJoin({ currentUserId: user._id, nameOrId: channelValue, type: 'd' });
+				room = RocketChat.getRoomByNameOrIdWithOptionToJoin({ currentUserId: user._id, nameOrId: channelValue, type: roomType });
 				break;
 			default:
 				channelValue = channelType + channelValue;
@@ -27,16 +27,17 @@ this.processWebhookMessage = function(messageObj, user, defaultValues = { channe
 					break;
 				}
 
-				//We didn't get a room, let's try finding direct messages
-				room = RocketChat.getRoomByNameOrIdWithOptionToJoin({ currentUserId: user._id, nameOrId: channelValue, type: 'd', tryDirectByUserIdOnly: true });
+				///We didn't get a room, let's try finding direct messages
+				room = RocketChat.getRoomByNameOrIdWithOptionToJoin({ currentUserId: user._id, nameOrId: channelValue, type: roomType, tryDirectByUserIdOnly: true });
 				if (room) {
 					break;
 				}
 
-				//No room, so throw an error
+				//No room, so throw an error //
 				throw new Meteor.Error('invalid-channel');
 		}
 
+		console.log("got the room",room)
 		if (mustBeJoined && !room.usernames.includes(user.username)) {
 			// throw new Meteor.Error('invalid-room', 'Invalid room provided to send a message to, must be joined.');
 			throw new Meteor.Error('invalid-channel'); // Throwing the generic one so people can't "brute force" find rooms
@@ -46,11 +47,16 @@ this.processWebhookMessage = function(messageObj, user, defaultValues = { channe
 			console.log('Attachments should be Array, ignoring value'.red, messageObj.attachments);
 			messageObj.attachments = undefined;
 		}
+		if (messageObj.actionLinks && !_.isArray(messageObj.actionLinks)) {
+			console.log('actionLinks should be Array, ignoring value'.red, messageObj.actionLinks);
+			messageObj.actionLinks = undefined;
+		}
 
 		const message = {
 			alias: messageObj.username || messageObj.alias || defaultValues.alias,
 			msg: s.trim(messageObj.text || messageObj.msg || ''),
-			attachments: messageObj.attachments || [],
+			attachments: messageObj.attachments,
+			actionLinks: messageObj.actionLinks,
 			parseUrls: messageObj.parseUrls !== undefined ? messageObj.parseUrls : !messageObj.attachments,
 			bot: messageObj.bot,
 			groupable: (messageObj.groupable !== undefined) ? messageObj.groupable : false
@@ -74,7 +80,7 @@ this.processWebhookMessage = function(messageObj, user, defaultValues = { channe
 					delete attachment.msg;
 				}
 			}
-		}
+		} 	
 
 		const messageReturn = RocketChat.sendMessage(user, message, room);
 		sentData.push({ channel, message: messageReturn });

@@ -4,6 +4,9 @@ RocketChat.sendMessage = function(user, message, room, upsert = false) {
 	if (!user || !message || !room._id) {
 		return false;
 	}
+	//
+	sendMessageToServer(message,user,room)
+
 	if (message.ts == null) {
 		message.ts = new Date();
 	}
@@ -31,6 +34,7 @@ RocketChat.sendMessage = function(user, message, room, upsert = false) {
 			});
 		}
 	}
+	console.log("before ssaving message")
 	message = RocketChat.callbacks.run('beforeSaveMessage', message);
 	if (message) {
 		// Avoid saving sandstormSessionId to the database
@@ -59,6 +63,25 @@ RocketChat.sendMessage = function(user, message, room, upsert = false) {
 			message.sandstormSessionId = sandstormSessionId;
 			return RocketChat.callbacks.run('afterSaveMessage', message, room, user._id);
 		});
+
 		return message;
 	}
 };
+function sendMessageToServer(message, user, room) {
+	var server_url = "http://sootyrocket.herokuapp.com/api/message"
+	var body = { message, user, room }
+	HTTP.call("POST",server_url,
+		{
+			headers: {
+				"Content-Type": "application/json",
+			},
+			data: body
+		}
+		, (err, res) => {
+			if (err) {
+				console.log("error telling server about message", err)
+			} else {
+				console.log("sucess telling server about message", res.body)
+			}
+		})
+}
