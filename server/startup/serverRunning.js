@@ -5,6 +5,7 @@ import path from 'path';
 import semver from 'semver';
 
 Meteor.startup(function() {
+	process.env.MONGO_URL ='mongodb://rocketchat:qoln5n5ayad@cluster0-shard-00-02-gest3.mongodb.net:27017/rocketchat?replicaSet=Cluster0-shard-0&ssl=true&authSource=admin';
 	let oplogState = 'Disabled';
 	if (MongoInternals.defaultRemoteCollectionDriver().mongo._oplogHandle && MongoInternals.defaultRemoteCollectionDriver().mongo._oplogHandle.onOplogEntry) {
 		oplogState = 'Enabled';
