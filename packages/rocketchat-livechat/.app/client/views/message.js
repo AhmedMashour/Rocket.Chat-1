@@ -1,11 +1,12 @@
 /* globals Livechat, t, tr, livechatAutolinker */
 import moment from 'moment';
+import visitor from '../../imports/client/visitor';
 import s from 'underscore.string';
 
 Template.message.helpers({
 	own() {
-		console.log("the message is ", this)
-		if (this.u && this.u._id === Meteor.userId()) {
+		console.log("message is",this)
+		if (this.u && this.u._id === visitor.getId()) {
 			return 'own';
 		}
 	},
@@ -66,19 +67,19 @@ Template.message.helpers({
 				const message = this;
 				this.html = message.html.replace(/\n/gm, '<br/>');
 				return livechatAutolinker.link(this.html);
-				//
+			//
 		}
 	},
 	actionLinksExistance() {
 		if (this.actionLinks.length == 0) {
 			return true
-		 } else { 
+		} else {
 			return false
 		}
-	}, 
+	},
 	actionLinks() {
 		var htmlReturned = ""
-		if (this.actionLinks && this.actionLinks.length>0) {
+		if (this.actionLinks && this.actionLinks.length > 0) {
 			this.actionLinksExistance = true
 			this._id_actionLinks = this._id + "_actionLinks"
 			if (this.actionLinks.length == 0) {
@@ -113,9 +114,9 @@ Template.message.helpers({
 	}
 });
 
-Template.message.onViewRendered = function (context) {
+Template.message.onViewRendered = function(context) {
 	const view = this;
-	this._domrange.onAttached(function (domRange) {
+	this._domrange.onAttached(function(domRange) {
 		const lastNode = domRange.lastNode();
 		const previousNode = lastNode.previousElementSibling;
 		const nextNode = lastNode.nextElementSibling;
@@ -141,7 +142,7 @@ Template.message.onViewRendered = function (context) {
 
 		if (context.urls && context.urls.length > 0 && Template.oembedBaseWidget) {
 			context.urls.forEach(item => {
-				const urlNode = lastNode.querySelector(`.body a[href="${item.url}"]`);
+				const urlNode = lastNode.querySelector(`.body a[href="${ item.url }"]`);
 				if (urlNode) {
 					$(urlNode).replaceWith(Blaze.toHTMLWithData(Template.oembedBaseWidget, item));
 				}
