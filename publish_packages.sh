@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash test World!
 set -x
 set -euvo pipefail
 IFS=$'\n\t'
